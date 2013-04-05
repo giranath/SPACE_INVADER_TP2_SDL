@@ -37,6 +37,8 @@ struct Entite {
     SDL_Surface *surface;   // Surface SDL
 };
 
+// Test
+
 /* Programme principale
 =================================*/
 const int	LARGEUR_ALIEN = 50,         // La largeur en pixel d'un alien
