@@ -17,10 +17,28 @@ using namespace std;
 =================================*/
 
 
+/*Structures
+ ================================*/
+
+// Structure correspondant à un vecteur à 2 dimensions
+struct Vecteur2f {
+    float x;
+    float y;  
+};
+
+// Structure pour définir un objet dans le jeu
+struct Entite {
+    bool vivant;            // L'entite est-il vivant?
+    int vie;                // Son nombre de vie
+    
+    Vecteur2f position;     // Sa position dans l'espace
+    Vecteur2f velocite;     // Sa vélocité sur 2 dimensions
+    SDL_Rect  hitbox;       // Boite de collision
+    SDL_Surface *surface;   // Surface SDL
+};
 
 /* Programme principale
 =================================*/
-
 const int	LARGEUR_ALIEN = 50,         // La largeur en pixel d'un alien
 			HAUTEUR_ALIEN = 50,         // La hauteur en pixel d'un alien
 			LARGEUR_HERO = 50,          // La largeur en pixel du hero
