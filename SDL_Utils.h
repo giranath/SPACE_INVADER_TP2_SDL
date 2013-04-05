@@ -1,10 +1,11 @@
 #ifndef DEF_SDL_UTILS
 #define DEF_SDL_UTILS
 
-#ifdef __APPLE__
-    #include <SDL/SDL.h>
+// Uniquement pour ne pas avoir a ce soucier s'il s'agit d'un mac ou d'un windows lors de la compilation
+#ifdef __APPLE__    // S'il s'agit d'un mac, on inclut "SDL/SDL.h" et "SDL_image/SDL_image.h"
+    #include <SDL/SDL.h>    
     #include <SDL_image/SDL_image.h>
-#else 
+#else               // Sinon, on inclut "SDL.h" et "SDL_image.h"
     #include <SDL.h>
     #include <SDL_image.h>
 #endif
@@ -28,19 +29,6 @@ SDL_Surface* initEcran(char titre[], char icone[], int largeur, int hauteur, int
 	return ecran;
 }
 
-
-void initCharset(SDL_Rect posImage[8][5], int ligne, int colonne, int w, int h)
-{ 
- for(int i=0;i<ligne;i++) 
-  for(int j=0; j<colonne; j++)
-  {
-  posImage[i][j].x = j*w;
-  posImage[i][j].y = i*h;
-  posImage[i][j].w = w;
-  posImage[i][j].h = h;
-  }
-}
-
 SDL_Rect initPosition(int x, int y)
 {
 	SDL_Rect pos;
@@ -49,14 +37,6 @@ SDL_Rect initPosition(int x, int y)
 	pos.y = y;
 
 	return pos;
-}
-
-//Fonction remplissant l'ecran 
-void dessinerImage(SDL_Surface* image, SDL_Rect posImage, SDL_Surface* ecran, SDL_Rect posBonhomme)
-{
-	SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 255, 255, 255));		//l'endroit et quel couleur
-	SDL_BlitSurface(image, &posImage, ecran, &posBonhomme);	//Remplir la surface
-	SDL_Flip(ecran);						//mettre a jour l'ecran avec les nouvelles donnees
 }
 
 #endif
