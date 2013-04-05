@@ -13,31 +13,22 @@ Directives au pre-processeur
 
 using namespace std;
 
-/* Prototype
-=================================*/
-
-
 /*Structures
  ================================*/
 
-// Structure correspondant à un vecteur à 2 dimensions
-struct Vecteur2f {
-    float x;
-    float y;  
-};
+typedef SDL_Rect Vecteur2f;
 
 // Structure pour définir un objet dans le jeu
 struct Entite {
     bool vivant;            // L'entite est-il vivant?
     int vie;                // Son nombre de vie
     
-    Vecteur2f position;     // Sa position dans l'espace
-    Vecteur2f velocite;     // Sa vélocité sur 2 dimensions
+    Vecteur2f position = {0,0,0,0};     // Sa position dans l'espace
+    Vecteur2f velocite = {0,0,0,0};     // Sa vélocité sur 2 dimensions
     SDL_Rect  hitbox;       // Boite de collision
-    SDL_Surface *surface;   // Surface SDL
+    SDL_Surface *surface = 0;   // Surface SDL
 };
 
-// Test
 
 /* Programme principale
 =================================*/
@@ -56,20 +47,15 @@ int main(int argc, char *argv[])
 	/*************** Variable SDL *********************/
 	// Les differentes surfaces du programme
 	SDL_Surface *ecran = 0;            // L'ecran
-	SDL_Surface *spriteHero = 0;       // Le sprite du hero
-	SDL_Surface *spriteAlien = 0;      // Le sprite d'un alien
-	SDL_Surface *spriteBalleHero = 0;  // Le sprite d'une balle du hero
-	SDL_Surface *spriteBalleAlien = 0; // Le sprite d'une balle alien
 
-	
+	Entite joueur;
+    Entite balleHero;
+    
     // Les rectangles
-	SDL_Rect posHero = {200,450},      // Vecteur de la position du hero
-			 posAlien,                 // Vecteur de la position du bloc d'alien
-			 velAlien,                 // La velocite du bloc d'alien
-			 velHero,                  // La velocite du hero
-			 posBalleHero;             // La position de la balle unique du hero
+	Vecteur2f posAlien,                 // Vecteur de la position du bloc d'alien
+              velAlien;                // La velocite du bloc d'alien
 
-	vector<SDL_Rect> posBalleAlien;    // Un tableau dynamique des balles aliens
+	vector<Entite> balleAlien;    // Un tableau dynamique des balles aliens
 
 	/*************** Variable Standards *********************/
 	bool	partieTerminee = false,    // La partie est terminee
@@ -84,7 +70,7 @@ int main(int argc, char *argv[])
 
 	unsigned long ticks;               // Le nombre de milisecondes ecoulees depuis le lancement du programme
 
-	int Alien[HAUTEUR_BLOC][LARGEUR_BLOC]; // Matrice contenant les informations du bloc d'aliens
+	Entite Alien[HAUTEUR_BLOC][LARGEUR_BLOC]; // Matrice contenant les informations du bloc d'aliens
 
 	/*************** PROGRAMME *********************/
 	// Initialisation SDL
@@ -95,10 +81,17 @@ int main(int argc, char *argv[])
 	}
 	
 	// On charge l'image du hero a l'aide de la bibliotheque SDL_Images
-	spriteHero = IMG_Load("SpaceInvaders.bmp");
-
+	joueur.surface = SDL_LoadBMP("SpaceInvaders.bmp");
+    
+    if(!joueur.surface) {
+        cerr << "Impossible de charger l'image" << endl;
+    }
+    
+    joueur.position.x = 200;
+    joueur.position.y = 500;
+    
     // On cree l'ecran a l'aide de la fonction initEcran
-	ecran = initEcran("Space Invaders", NULL, 400, 600, 0, 0, 0);
+	ecran = initEcran((char*)"Space Invaders", NULL, 400, 600, 0, 0, 0);
 	
 	/*************** BOUCLE PRINCIPALE *********************/
 	while(partieTerminee == false)         // Tant que la partie n'est pas terminee...
@@ -147,22 +140,22 @@ int main(int argc, char *argv[])
 		}
 		
 		// On reinitialise la velocite du hero a 0
-		velHero.x = 0;
+		joueur.velocite.x = 0;
 
         // Si on appui sur la touche de droite...		
 		if(toucheD)
-			velHero.x = 1;   // La velocite du hero est 1 sur son axe x
+			joueur.velocite.x = 1;   // La velocite du hero est 1 sur son axe x
 		if(toucheG)
-			velHero.x = -1; 
+			joueur.velocite.x = -1; 
 			
 		// On deplace le hero en fonction de sa velocite
-		posHero.x += velHero.x;
-
+		joueur.position.x += joueur.velocite.x;
+        
         // On remplit l'ecran de noir
 		SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
 		
 		// On dessine le hero
-		SDL_BlitSurface(spriteHero, NULL, ecran, &posHero);
+		SDL_BlitSurface(joueur.surface, NULL, ecran, &joueur.position);
 		
 		// On change les buffers
 		SDL_Flip(ecran);
@@ -173,7 +166,7 @@ int main(int argc, char *argv[])
 	}
 	
 	// On libere la memoire de la surface
-	SDL_FreeSurface(spriteHero);
+	SDL_FreeSurface(joueur.surface);
 	
 	// On ferme la SDL
 	SDL_Quit();
@@ -181,5 +174,3 @@ int main(int argc, char *argv[])
 	// On quitte
  	return EXIT_SUCCESS;
 }
-
-

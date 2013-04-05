@@ -23,7 +23,7 @@ SDL_Surface* initEcran(char titre[], char icone[], int largeur, int hauteur, int
 	if(icone != NULL)
 		SDL_WM_SetIcon(SDL_LoadBMP(icone), NULL);
 
-	ecran = SDL_SetVideoMode(largeur,hauteur,32,SDL_HWSURFACE | SDL_RESIZABLE| SDL_DOUBLEBUF);  //la surface de l'ecran
+	ecran = SDL_SetVideoMode(largeur,hauteur,32,SDL_HWSURFACE | SDL_DOUBLEBUF);  //la surface de l'ecran
 	SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, rouge, vert, bleu));
 	return ecran;
 }
