@@ -8,6 +8,9 @@ Description du programme: Space invader en SDL
 Directives au pre-processeur
 =================================*/
 
+// Restructuration terminée!
+
+
 #include "SDL_Utils.h"
 #include <vector>
 
