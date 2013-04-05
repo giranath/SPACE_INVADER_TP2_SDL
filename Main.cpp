@@ -21,14 +21,14 @@ using namespace std;
 /* Programme principale
 =================================*/
 
-const int	LARGEUR_ALIEN=50,         // La largeur en pixel d'un alien
-			HAUTEUR_ALIEN=50,         // La hauteur en pixel d'un alien
-			LARGEUR_HERO=50,          // La largeur en pixel du hero
-			HAUTEUR_HERO=50,          // La hauteur en pixel du hero
-			LARGEUR_BLOC=10,          // Le nombre de colone d'alien dans le bloc
-			HAUTEUR_BLOC=5;           // Le nombre de ligne d'alien dans le bloc
+const int	LARGEUR_ALIEN = 50,         // La largeur en pixel d'un alien
+			HAUTEUR_ALIEN = 50,         // La hauteur en pixel d'un alien
+			LARGEUR_HERO = 50,          // La largeur en pixel du hero
+			HAUTEUR_HERO = 50,          // La hauteur en pixel du hero
+			LARGEUR_BLOC = 10,          // Le nombre de colone d'alien dans le bloc
+			HAUTEUR_BLOC = 5;           // Le nombre de ligne d'alien dans le bloc
 
-const float	VITESSE_BALLE=1;          // La vitesse d'une balle
+const float	VITESSE_BALLE = 1;          // La vitesse d'une balle
 
 int main(int argc, char *argv[])
 {
@@ -122,6 +122,8 @@ int main(int argc, char *argv[])
                             break;
 					}
 					break;
+            default:
+                break;
 		}
 		
 		// On reinitialise la velocite du hero a 0
@@ -135,7 +137,6 @@ int main(int argc, char *argv[])
 			
 		// On deplace le hero en fonction de sa velocite
 		posHero.x += velHero.x;
-		
 
         // On remplit l'ecran de noir
 		SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
