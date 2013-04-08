@@ -46,14 +46,15 @@ bool collisionEntiteEntite(Entite &a, Entite &b);
 
 /* Programme principale
 =================================*/
-const int	LARGEUR_ALIEN = 50,         // La largeur en pixel d'un alien
-			HAUTEUR_ALIEN = 50,         // La hauteur en pixel d'un alien
+const int	LARGEUR_ALIEN = 13,         // La largeur en pixel d'un alien
+			HAUTEUR_ALIEN = 7,         // La hauteur en pixel d'un alien
 			LARGEUR_HERO = 13,          // La largeur en pixel du hero
 			HAUTEUR_HERO = 8,          // La hauteur en pixel du hero
 			LARGEUR_BLOC = 10,          // Le nombre de colone d'alien dans le bloc
 			HAUTEUR_BLOC = 5;           // Le nombre de ligne d'alien dans le bloc
 
-const float	VITESSE_BALLE = 0.85f;          // La vitesse d'une balle
+const float	VITESSE_BALLE = 0.85f,
+            VITESSE_HERO = 0.25f;          // La vitesse d'une balle
 
 const int LARGEUR_ECRAN = 400,
           HAUTEUR_ECRAN = 600;
@@ -121,11 +122,15 @@ int main(int argc, char *argv[])
 	ecran = initEcran((char*)"Space Invaders", NULL, LARGEUR_ECRAN, HAUTEUR_ECRAN, 0, 0, 0);
 	
     unsigned long oldTicks;
+    float delta;
+    
 	/*************** BOUCLE PRINCIPALE *********************/
 	while(partieTerminee == false)         // Tant que la partie n'est pas terminee...
 	{
         oldTicks = ticks;
         ticks = SDL_GetTicks();            // On récupère les ticks de l'application
+        
+        delta = ticks - oldTicks;
         
 		SDL_Event event;                  // On recupere l'evenement de la fenêtre sans bloquer le programme
 		SDL_PollEvent(&event);            
@@ -173,12 +178,11 @@ int main(int argc, char *argv[])
 		// On reinitialise la velocite du hero a 0
 		joueur.velocite.x = 0;
 
-        balleHero.velocite.y = -VITESSE_BALLE * (ticks - oldTicks);
+        balleHero.velocite.y = -VITESSE_BALLE * delta;
         
         if(balleHero.vivant) {
             rafraichirPositionEntite(balleHero);
         }
-        
         
         if(collisionEntiteBordure(balleHero, LARGEUR_ECRAN, HAUTEUR_ECRAN)) {
             balleHero.vivant = false;
@@ -194,9 +198,9 @@ int main(int argc, char *argv[])
         
         // Si on appui sur la touche de droite...		
 		if(toucheD)
-			joueur.velocite.x = 0.25f * (ticks - oldTicks);   // La velocite du hero est 1 sur son axe x
+			joueur.velocite.x = VITESSE_HERO * delta;   // La velocite du hero est 1 sur son axe x
 		if(toucheG)
-			joueur.velocite.x = -0.25f * (ticks - oldTicks); 
+			joueur.velocite.x = -VITESSE_HERO * delta; 
 			
         
         // Si on appui sur haut et qu'on peut tirer...
@@ -214,9 +218,8 @@ int main(int argc, char *argv[])
 		// On dessine le hero
 		SDL_BlitSurface(joueur.surface, &joueur.subrect, ecran, &joueur.position);
 		
-        // Si la balle du héro est vivante
+        // Si la balle du héro est vivante, on la dessine
         if(balleHero.vivant) {
-            // On dessine la balle du hero
             SDL_BlitSurface(balleHero.surface, &balleHero.subrect, ecran, &balleHero.position); 
         }
         
