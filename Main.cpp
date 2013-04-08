@@ -37,20 +37,26 @@ struct Entite {
 };
 
 Entite creerEntite(int vie, float x, float y, float largeur, float hauteur);
+void tirerProjectile(Entite &projectile, float x, float y);
+
+void rafraichirPositionEntite(Entite &entite);
+
+bool collisionEntiteBordure(Entite &entite, int largeur, int hauteur);
+bool collisionEntiteEntite(Entite &a, Entite &b);
 
 /* Programme principale
 =================================*/
 const int	LARGEUR_ALIEN = 50,         // La largeur en pixel d'un alien
 			HAUTEUR_ALIEN = 50,         // La hauteur en pixel d'un alien
-			LARGEUR_HERO = 50,          // La largeur en pixel du hero
-			HAUTEUR_HERO = 50,          // La hauteur en pixel du hero
+			LARGEUR_HERO = 13,          // La largeur en pixel du hero
+			HAUTEUR_HERO = 8,          // La hauteur en pixel du hero
 			LARGEUR_BLOC = 10,          // Le nombre de colone d'alien dans le bloc
 			HAUTEUR_BLOC = 5;           // Le nombre de ligne d'alien dans le bloc
 
-const float	VITESSE_BALLE = 5;          // La vitesse d'une balle
+const float	VITESSE_BALLE = 0.85f;          // La vitesse d'une balle
 
 const int LARGEUR_ECRAN = 400,
-            HAUTEUR_ECRAN = 600;
+          HAUTEUR_ECRAN = 600;
 
 int main(int argc, char *argv[])
 {
@@ -74,9 +80,9 @@ int main(int argc, char *argv[])
 			toucheG = false,                 // La touche Gauche est appuyee
 			toucheH = false;                 // La touche Haut ou même espace est appuyee
 
-	unsigned int	score = 0;         // Le score de la presente partie
+	unsigned int  score = 0;            // Le score de la presente partie
 
-	unsigned long ticks;               // Le nombre de milisecondes ecoulees depuis le lancement du programme
+	unsigned long ticks;                // Le nombre de milisecondes ecoulees depuis le lancement du programme
 
 	Entite Alien[HAUTEUR_BLOC][LARGEUR_BLOC]; // Matrice contenant les informations du bloc d'aliens
 
@@ -100,7 +106,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     
-    joueur = creerEntite(3, 200,500, 13, 8);
+    joueur = creerEntite(3, 200, 500, LARGEUR_HERO, HAUTEUR_HERO);
     joueur.surface = spriteSheet;
     joueur.subrect.x = 0;
     joueur.subrect.y = 32;
@@ -114,10 +120,13 @@ int main(int argc, char *argv[])
     // On cree l'ecran a l'aide de la fonction initEcran
 	ecran = initEcran((char*)"Space Invaders", NULL, LARGEUR_ECRAN, HAUTEUR_ECRAN, 0, 0, 0);
 	
+    unsigned long oldTicks;
 	/*************** BOUCLE PRINCIPALE *********************/
 	while(partieTerminee == false)         // Tant que la partie n'est pas terminee...
 	{
+        oldTicks = ticks;
         ticks = SDL_GetTicks();            // On récupère les ticks de l'application
+        
 		SDL_Event event;                  // On recupere l'evenement de la fenêtre sans bloquer le programme
 		SDL_PollEvent(&event);            
 		switch(event.type)
@@ -164,37 +173,40 @@ int main(int argc, char *argv[])
 		// On reinitialise la velocite du hero a 0
 		joueur.velocite.x = 0;
 
+        balleHero.velocite.y = -VITESSE_BALLE * (ticks - oldTicks);
+        
         if(balleHero.vivant) {
-            balleHero.position.y += balleHero.velocite.y;
+            rafraichirPositionEntite(balleHero);
         }
         
-        if(balleHero.position.y == 0) {
+        
+        if(collisionEntiteBordure(balleHero, LARGEUR_ECRAN, HAUTEUR_ECRAN)) {
             balleHero.vivant = false;
             droitTirer = true;
         }
         
-        if(joueur.position.x + joueur.largeur >= LARGEUR_ECRAN) {
-            joueur.position.x = LARGEUR_ECRAN - joueur.largeur;   
+        if(collisionEntiteBordure(joueur, LARGEUR_ECRAN, HAUTEUR_ECRAN)) {
+            if(joueur.position.x == 0)
+                joueur.position.x = LARGEUR_ECRAN - joueur.largeur - 1;
+            else 
+                joueur.position.x = 1;
         }
         
         // Si on appui sur la touche de droite...		
 		if(toucheD)
-			joueur.velocite.x = 1;   // La velocite du hero est 1 sur son axe x
+			joueur.velocite.x = 0.25f * (ticks - oldTicks);   // La velocite du hero est 1 sur son axe x
 		if(toucheG)
-			joueur.velocite.x = -1; 
+			joueur.velocite.x = -0.25f * (ticks - oldTicks); 
 			
         
         // Si on appui sur haut et qu'on peut tirer...
         if(toucheH && droitTirer) {
-            balleHero.vivant = true;
-            balleHero.position.x = joueur.position.x + joueur.largeur/2;
-            balleHero.position.y = joueur.position.y;
-            
+            tirerProjectile(balleHero, joueur.position.x + joueur.largeur/2, joueur.position.y);
             droitTirer = false;
         }
         
 		// On deplace le hero en fonction de sa velocite
-		joueur.position.x += joueur.velocite.x;
+        rafraichirPositionEntite(joueur);
         
         // On remplit l'ecran de noir
 		SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
@@ -244,4 +256,33 @@ Entite creerEntite(int vie, float x, float y, float largeur, float hauteur) {
     entite.subrect.h = hauteur;
     
     return entite;                          // On retourne le nouvel entité
+}
+
+void rafraichirPositionEntite(Entite &entite) {
+    entite.position.x += entite.velocite.x;
+    entite.position.y += entite.velocite.y;
+}
+
+void tirerProjectile(Entite &projectile, float x, float y) {
+    projectile.vivant = true;
+    projectile.position.x = x;
+    projectile.position.y = y;
+}
+
+bool collisionEntiteBordure(Entite &entite, int largeur, int hauteur) {
+    return(entite.position.x + entite.largeur >= largeur ||
+           entite.position.x <= 0 ||
+           entite.position.y <= 0 ||
+           entite.position.y + entite.hauteur >= hauteur);
+}
+
+bool collisionEntiteEntite(Entite &a, Entite &b) {
+    if(a.position.x + a.largeur < b.position.x ||   // Si le rectangle a est plus a gauche que le rectangle b
+       a.position.y + a.largeur < b.position.y ||   // Ou si le rectangle a est plus haut que le rectangle b
+       a.position.x > b.position.x + b.largeur ||   // Ou si le rectangle a est plus à droite que le rectangle b
+       a.position.y > b.position.y + b.hauteur) {   // Ou si le rectangle a est plus bas que le rectangle b
+        return false;                               // Il n'y a pas de collision
+    }
+    
+    return true;                                    // Sinon il y en a une
 }
