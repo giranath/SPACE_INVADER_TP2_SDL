@@ -44,6 +44,9 @@ void rafraichirPositionEntite(Entite &entite);
 bool collisionEntiteBordure(Entite &entite, int largeur, int hauteur);
 bool collisionEntiteEntite(Entite &a, Entite &b);
 
+void toucheAppuyer(SDL_Event event, bool &toucheH, bool &toucheG, bool &toucheD);
+void toucheRetirer(SDL_Event event, bool &toucheH, bool &toucheG, bool &toucheD);
+
 /* Programme principale
 =================================*/
 const int	LARGEUR_ALIEN = 13,         // La largeur en pixel d'un alien
@@ -118,6 +121,14 @@ int main(int argc, char *argv[])
     balleHero.subrect.y = 0;
     balleHero.velocite.y = -VITESSE_BALLE;
     
+    // Initialisation du tableau d'alien
+    for(int i = 0; i < HAUTEUR_BLOC; i++) {
+        for(int j = 0; j < LARGEUR_BLOC; j++) {
+            
+        }
+    }
+    
+    
     // On cree l'ecran a l'aide de la fonction initEcran
 	ecran = initEcran((char*)"Space Invaders", NULL, LARGEUR_ECRAN, HAUTEUR_ECRAN, 0, 0, 0);
 	
@@ -140,37 +151,11 @@ int main(int argc, char *argv[])
 			partieTerminee = true;         // On quitte la boucle
 			break;
 			case SDL_KEYDOWN:/* Si appui d'une touche, on sauvegarde son etat dans le booleen correspondant*/
-					switch (event.key.keysym.sym)
-					{
-					case SDLK_UP: case SDLK_SPACE:
-							toucheH = true;
-							break;
-						case SDLK_LEFT:
-							toucheG = true;
-							break;
-						case SDLK_RIGHT:
-							toucheD = true;
-							break;
-                        default:
-                            break;
-					}
-					break;
-				case SDL_KEYUP:/* Si retire d'une touche, on sauvegarde son etat dans le booleen correspondant*/
-					switch (event.key.keysym.sym)
-					{
-					case SDLK_UP: case SDLK_SPACE:
-							toucheH = false;
-							break;
-						case SDLK_LEFT:
-							toucheG = false;
-							break;
-						case SDLK_RIGHT:
-							toucheD = false;
-							break;
-                        default:
-                            break;
-					}
-					break;
+                toucheAppuyer(event, toucheH, toucheG,  toucheD);
+                break;
+            case SDL_KEYUP:/* Si retire d'une touche, on sauvegarde son etat dans le booleen correspondant*/
+                toucheRetirer(event, toucheH, toucheG, toucheD);
+                break;
             default:
                 break;
 		}
@@ -288,4 +273,45 @@ bool collisionEntiteEntite(Entite &a, Entite &b) {
     }
     
     return true;                                    // Sinon il y en a une
+}
+
+// Fonction d'appui sur une touche
+void toucheAppuyer(SDL_Event event, bool &toucheH, bool &toucheG, bool &toucheD)
+{
+	switch (event.key.keysym.sym)
+    {
+		case SDLK_UP: case SDLK_SPACE:
+            toucheH = true;
+            break;
+        case SDLK_LEFT:
+            toucheG = true;
+            break;
+        case SDLK_RIGHT:
+            toucheD = true;
+            break;
+        default:
+            break;
+    }
+    
+}
+
+// Fonction du retirement de touche
+void toucheRetirer(SDL_Event event, bool &toucheH, bool &toucheG, bool &toucheD)
+{
+    
+	switch (event.key.keysym.sym)
+	{
+        case SDLK_UP: case SDLK_SPACE:
+			toucheH = false;
+			break;
+		case SDLK_LEFT:
+			toucheG = false;
+			break;
+		case SDLK_RIGHT:
+			toucheD = false;
+			break;
+        default:
+            break;
+	}
+    
 }
