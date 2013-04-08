@@ -24,19 +24,19 @@ typedef SDL_Rect Vecteur2f;
 
 // Structure pour définir un objet dans le jeu
 struct Entite {
-    bool vivant = true;                 // L'entite est-il vivant?
-    int vie = 1;                        // Son nombre de vie
+    bool vivant;                        // L'entite est-il vivant?
+    int vie;                            // Son nombre de vie
     
-    Vecteur2f position = {0,0,0,0};     // Sa position dans l'espace
-    Vecteur2f velocite = {0,0,0,0};     // Sa vélocité sur 2 dimensions
+    Vecteur2f position;                 // Sa position dans l'espace
+    Vecteur2f velocite;                 // Sa vélocité sur 2 dimensions
     float largeur;                      // Sa largeur en pixel
     float hauteur;                      // Sa hauteur en pixel
     
-    SDL_Surface *surface = 0;           // Surface SDL
+    SDL_Surface *surface;               // Surface SDL
     SDL_Rect subrect;                   // Correspond au sous-rectangle a afficher de la surface
 };
 
-Entite creerEntite(int vie, Vecteur2f position, float largeur, float hauteur);
+Entite creerEntite(int vie, float x, float y, float largeur, float hauteur);
 
 /* Programme principale
 =================================*/
@@ -100,12 +100,12 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
     
-    joueur = creerEntite(3, {200,500}, 13, 8);
+    joueur = creerEntite(3, 200,500, 13, 8);
     joueur.surface = spriteSheet;
     joueur.subrect.x = 0;
     joueur.subrect.y = 32;
     
-    balleHero = creerEntite(1, {1000, 1000}, 1, 4);
+    balleHero = creerEntite(1, 1000, 1000, 1, 4);
     balleHero.surface = spriteSheet;
     balleHero.subrect.x = 25;
     balleHero.subrect.y = 0;
@@ -227,12 +227,13 @@ int main(int argc, char *argv[])
 
 /* Fonction automatisant la creation d'entite.  Parametres: Le nombre de vie, la position initialie, la largeur et la hauteur
                                                 Retour: Un entite dont les attributs correspondent aux parametres */
-Entite creerEntite(int vie, Vecteur2f position, float largeur, float hauteur) {
+Entite creerEntite(int vie, float x, float y, float largeur, float hauteur) {
     Entite entite;
     
     entite.vivant = true;                   // Par défaut, l'entite est vivant
     entite.vie = vie;                       // On lui definit son nombre de vie
-    entite.position = position;             // On lui assigne une position initiale
+    entite.position.x = x;             // On lui assigne une position initiale
+    entite.position.y = y; 
     entite.largeur = largeur;               // On lui donne la largeur souhaite
     entite.hauteur = hauteur;               // On lui donne la hauteur souhaite
     
