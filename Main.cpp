@@ -33,6 +33,7 @@ struct Entite {
     float hauteur;                      // Sa hauteur en pixel
     
     SDL_Surface *surface = 0;           // Surface SDL
+    SDL_Rect subrect;                   // Correspond au sous-rectangle a afficher de la surface
 };
 
 Entite creerEntite(int vie, Vecteur2f position, float largeur, float hauteur);
@@ -46,13 +47,17 @@ const int	LARGEUR_ALIEN = 50,         // La largeur en pixel d'un alien
 			LARGEUR_BLOC = 10,          // Le nombre de colone d'alien dans le bloc
 			HAUTEUR_BLOC = 5;           // Le nombre de ligne d'alien dans le bloc
 
-const float	VITESSE_BALLE = 1;          // La vitesse d'une balle
+const float	VITESSE_BALLE = 5;          // La vitesse d'une balle
+
+const int LARGEUR_ECRAN = 400,
+            HAUTEUR_ECRAN = 600;
 
 int main(int argc, char *argv[])
 {
 	/*************** Variable SDL *********************/
 	// Les differentes surfaces du programme
 	SDL_Surface *ecran = 0;             // L'ecran
+    SDL_Surface *spriteSheet = 0;
 
 	Entite joueur;                      // Il s'agit du hero (le vaisseau vert)
     Entite balleHero;                   // Il s'agit du projectile du héro (1 seul à la fois)
@@ -83,17 +88,27 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
     
-    joueur = creerEntite(3, {200,500}, 10, 10);
+    spriteSheet = IMG_Load("spaceInvadersSpriteSheet.png");
     
-    // On charge l'image du hero a l'aide de la bibliotheque SDL_Images
-	joueur.surface = SDL_LoadBMP("SpaceInvaders.bmp");
-    
-    if(!joueur.surface) {
-        cerr << "Impossible de charger l'image" << endl;
+    if(!spriteSheet) {
+        cerr << "Impossible de charger l'image 'spaceInvadersSpriteSheet.png'" << endl;
+        return EXIT_FAILURE;
     }
     
+    joueur = creerEntite(3, {200,500}, 13, 8);
+    joueur.surface = spriteSheet;
+    joueur.subrect.x = 0;
+    joueur.subrect.y = 32;
+    
+    
+    balleHero = creerEntite(1, {1000, 1000}, 1, 4);
+    balleHero.surface = spriteSheet;
+    balleHero.subrect.x = 25;
+    balleHero.subrect.y = 0;
+    balleHero.velocite.y = -VITESSE_BALLE;
+    
     // On cree l'ecran a l'aide de la fonction initEcran
-	ecran = initEcran((char*)"Space Invaders", NULL, 400, 600, 0, 0, 0);
+	ecran = initEcran((char*)"Space Invaders", NULL, LARGEUR_ECRAN, HAUTEUR_ECRAN, 0, 0, 0);
 	
 	/*************** BOUCLE PRINCIPALE *********************/
 	while(partieTerminee == false)         // Tant que la partie n'est pas terminee...
@@ -145,12 +160,35 @@ int main(int argc, char *argv[])
 		// On reinitialise la velocite du hero a 0
 		joueur.velocite.x = 0;
 
+        if(balleHero.vivant) {
+            balleHero.position.y += balleHero.velocite.y;
+        }
+        
+        if(balleHero.position.y == 0) {
+            balleHero.vivant = false;
+            droitTirer = true;
+        }
+        
+        if(joueur.position.x + joueur.largeur >= LARGEUR_ECRAN) {
+            joueur.position.x = LARGEUR_ECRAN - joueur.largeur;   
+        }
+        
         // Si on appui sur la touche de droite...		
 		if(toucheD)
 			joueur.velocite.x = 1;   // La velocite du hero est 1 sur son axe x
 		if(toucheG)
 			joueur.velocite.x = -1; 
 			
+        
+        // Si on appui sur haut et qu'on peut tirer...
+        if(toucheH && droitTirer) {
+            balleHero.vivant = true;
+            balleHero.position.x = joueur.position.x;
+            balleHero.position.y = joueur.position.y;
+            
+            droitTirer = false;
+        }
+        
 		// On deplace le hero en fonction de sa velocite
 		joueur.position.x += joueur.velocite.x;
         
@@ -158,8 +196,14 @@ int main(int argc, char *argv[])
 		SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
 		
 		// On dessine le hero
-		SDL_BlitSurface(joueur.surface, NULL, ecran, &joueur.position);
+		SDL_BlitSurface(joueur.surface, &joueur.subrect, ecran, &joueur.position);
 		
+        // Si la balle du héro est vivante
+        if(balleHero.vivant) {
+            // On dessine la balle du hero
+            SDL_BlitSurface(balleHero.surface, &balleHero.subrect, ecran, &balleHero.position); 
+        }
+        
 		// On change les buffers
 		SDL_Flip(ecran);
 		
@@ -191,6 +235,9 @@ Entite creerEntite(int vie, Vecteur2f position, float largeur, float hauteur) {
     
     entite.velocite.x = 0;                  // À sa création, l'entité est immobile
     entite.velocite.y = 0;
+    
+    entite.subrect.w = largeur;
+    entite.subrect.h = hauteur;
     
     return entite;                          // On retourne le nouvel entité
 }
