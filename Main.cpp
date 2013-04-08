@@ -88,10 +88,14 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
     
+    // On charge le sprite sheet en mémoire
     spriteSheet = IMG_Load("spaceInvadersSpriteSheet.png");
     
+    // Si une erreur est survenue...
     if(!spriteSheet) {
+        // On prévient l'utilisateur
         cerr << "Impossible de charger l'image 'spaceInvadersSpriteSheet.png'" << endl;
+        // On quitte
         return EXIT_FAILURE;
     }
     
@@ -99,7 +103,6 @@ int main(int argc, char *argv[])
     joueur.surface = spriteSheet;
     joueur.subrect.x = 0;
     joueur.subrect.y = 32;
-    
     
     balleHero = creerEntite(1, {1000, 1000}, 1, 4);
     balleHero.surface = spriteSheet;
@@ -183,7 +186,7 @@ int main(int argc, char *argv[])
         // Si on appui sur haut et qu'on peut tirer...
         if(toucheH && droitTirer) {
             balleHero.vivant = true;
-            balleHero.position.x = joueur.position.x;
+            balleHero.position.x = joueur.position.x + joueur.largeur/2;
             balleHero.position.y = joueur.position.y;
             
             droitTirer = false;
@@ -209,7 +212,6 @@ int main(int argc, char *argv[])
 		
 		// On endort le programme 12 ms
 		SDL_Delay(12);
-
 	}
 	
 	// On libere la memoire de la surface
@@ -222,8 +224,8 @@ int main(int argc, char *argv[])
  	return EXIT_SUCCESS;
 }
 
-// Fonction automatisant la creation d'entite.  Parametres: Le nombre de vie, la position initialie, la largeur et la hauteur
-//                                              Retour: Un entite dont les attributs correspondent aux parametres
+/* Fonction automatisant la creation d'entite.  Parametres: Le nombre de vie, la position initialie, la largeur et la hauteur
+                                                Retour: Un entite dont les attributs correspondent aux parametres */
 Entite creerEntite(int vie, Vecteur2f position, float largeur, float hauteur) {
     Entite entite;
     
