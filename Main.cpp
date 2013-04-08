@@ -89,7 +89,8 @@ int main(int argc, char *argv[])
 	}
     
     // On charge le sprite sheet en mémoire
-    spriteSheet = IMG_Load("spaceInvadersSpriteSheet.png");
+    spriteSheet = SDL_LoadBMP("spaceInvadersSpriteSheet.bmp");
+    SDL_SetColorKey(spriteSheet, SDL_SRCCOLORKEY, SDL_MapRGB(spriteSheet->format, 255, 0, 255));
     
     // Si une erreur est survenue...
     if(!spriteSheet) {
