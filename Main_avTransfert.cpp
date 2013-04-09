@@ -19,6 +19,9 @@ using namespace std;
 /*Structures
  ================================*/
 
+// Ici c'est uniquement une sorte de camouflage. Donc il s'agit d'un SDL_Rect mais on peut aussi l'appelé Point2i
+typedef SDL_Rect Point2i;
+
 struct Vecteur2f {
     float x;
     float y;  
@@ -75,7 +78,7 @@ const int	LARGEUR_ALIEN = 13,        // La largeur en pixel d'un alien
 			LARGEUR_BLOC = 10,         // Le nombre de colone d'alien dans le bloc
 			HAUTEUR_BLOC = 6;         // Le nombre de ligne d'alien dans le bloc
 
-const float	VITESSE_BALLE = 0.25f,     // La vitesse d'une balle
+const float	VITESSE_BALLE = 0.55f,     // La vitesse d'une balle
             VITESSE_HERO = 0.25f;      // La vitesse du héro
 
 const int LARGEUR_ECRAN = 400,
@@ -237,29 +240,10 @@ int main(int argc, char *argv[])
                 // Par défaut les aliens ne descende pas
                 Alien[i][j].velocite.y = 0;
                 
-                randomizer.maximum = 100;
-                
                 int anim = random(randomizer);
                 
                 if(anim < 5) {
                     animerAlien(Alien[i][j]);
-                }
-                
-                randomizer.maximum = 10000;
-                int shoot = random(randomizer);
-                
-                if(shoot == 20) {
-                    Entite balle;
-                    balle = creerEntite(1, 1000, 1000, 1, 4);
-                    balle.surface = spriteSheet;
-                    balle.subrect.x = 25;
-                    balle.subrect.y = 0;
-                    balle.velocite.y = VITESSE_BALLE;
-                    
-                    tirerProjectile(balle, Alien[i][j].position.x, Alien[i][j].position.y);
-                    
-                    balleAlien.push_back(balle);
-                    
                 }
                 
                 // Si la balle du héro atteint un alien
@@ -281,56 +265,19 @@ int main(int argc, char *argv[])
                         Alien[i][j].vivant = false;
                     }
                 }
-                
-                it_balleAlien = balleAlien.begin();
-                
-                while(it_balleAlien != balleAlien.end()) {
-                    
-                    it_balleAlien->velocite.y =  0.0025f * delta;
-                    
-                    if(collisionEntiteBordure(*it_balleAlien, LARGEUR_ECRAN, HAUTEUR_ECRAN)) {
-                        it_balleAlien->vivant = false;
-                    }
-                    
-                    if(collisionEntiteEntite(*it_balleAlien, joueur)) {
-                        it_balleAlien->vivant = false;
-                        
-                        joueur.vie--;
-                        
-                        if(joueur.vie <= 0) {
-                            joueur.vivant = false;
-                        }
-                    }
-                    
-                    if(it_balleAlien->vivant == false) {
-                        it_balleAlien = balleAlien.erase(it_balleAlien);
-                    } else {
-                        
-                        rafraichirPositionEntite(*it_balleAlien);
-                        
-                        it_balleAlien++;
-                    }
-                }
 				//================================================================================================================================
                 
                 // S'il y a collision avec la bordure et un alien
                 // Il change sa direction, et descend pour se mettre entre deux rangés
                 if(collisionEntiteBordure(Alien[i][j], LARGEUR_ECRAN, HAUTEUR_ECRAN)) {
-                    
-                    if(Alien[i][j].position.x + LARGEUR_ALIEN >= LARGEUR_ECRAN) {
-                        Alien[i][j].position.x = LARGEUR_ECRAN - (1 + LARGEUR_ALIEN);
-                    } else {
-                        Alien[i][j].position.x = 1;
-                    }
-                    
-                    Alien[i][j].position.y += HAUTEUR_ALIEN * 2;
                     Alien[i][j].velocite.x = -1 * Alien[i][j].velocite.x;
+                    Alien[i][j].velocite.y = HAUTEUR_ALIEN * 2;
                 }
             }
         }
         
         // Le déplacment des aliens dépend du temps
-        if(alienDepTimer.actual - alienDepTimer.old >= 80) {
+        if(alienDepTimer.actual - alienDepTimer.old >= 10) {
             for(int i = 0; i < HAUTEUR_BLOC; i++) 
             {
                 for(int j = 0; j < LARGEUR_BLOC; j++) 
@@ -376,10 +323,6 @@ int main(int argc, char *argv[])
 		// On deplace le hero en fonction de sa velocite
         rafraichirPositionEntite(joueur);
         
-        
-        if(joueur.vivant == false)
-            partieTerminee = true;
-        
         // On remplit l'ecran de noir
 		SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
 		
@@ -397,12 +340,6 @@ int main(int argc, char *argv[])
         // Si la balle du héro est vivante, on la dessine
         if(balleHero.vivant) {
             SDL_BlitSurface(balleHero.surface, &balleHero.subrect, ecran, &balleHero.spritePos); 
-        }
-        
-        
-        for(it_balleAlien = balleAlien.begin(); it_balleAlien != balleAlien.end(); it_balleAlien++) {
-            if(it_balleAlien->vivant)
-                SDL_BlitSurface(it_balleAlien->surface, &it_balleAlien->subrect, ecran, &it_balleAlien->spritePos); 
         }
         
 		// On change les buffers
@@ -498,6 +435,7 @@ void toucheAppuyer(SDL_Event event, bool &toucheH, bool &toucheG, bool &toucheD)
 // Fonction du retirement de touche
 void toucheRetirer(SDL_Event event, bool &toucheH, bool &toucheG, bool &toucheD)
 {
+    
 	switch (event.key.keysym.sym)
 	{
         case SDLK_UP: case SDLK_SPACE:

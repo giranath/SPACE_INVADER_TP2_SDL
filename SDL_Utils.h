@@ -11,8 +11,8 @@
 #endif
 
 #include <iostream>
+#include <time.h>
 // Implementation =======================================================================================================
-
 
 //Chargement de l'ecran principal
 SDL_Surface* initEcran(char titre[], char icone[], int largeur, int hauteur, int rouge, int vert, int bleu)
