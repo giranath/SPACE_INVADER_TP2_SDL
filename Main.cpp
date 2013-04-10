@@ -1,4 +1,5 @@
 /* Entete du programme
+ 
 Nom: Space invaders
 Auteur: Maxime Fontaine Bombardier
 		Nathan Giraldeau
@@ -55,14 +56,16 @@ const int	LARGEUR_ALIEN = 13,        // La largeur en pixel d'un alien
             HAUTEUR_ALIEN = 7,         // La hauteur en pixel d'un alien
             LARGEUR_HERO = 13,         // La largeur en pixel du hero
             HAUTEUR_HERO = 8,          // La hauteur en pixel du hero
-            LARGEUR_BLOC = 10,         // Le nombre de colone d'alien dans le bloc
-            HAUTEUR_BLOC = 6;         // Le nombre de ligne d'alien dans le bloc
+            LARGEUR_BLOC = 10,         // Le nombre de colone d'alien dans le bloc 
+            HAUTEUR_BLOC = 6;         // Le nombre de ligne d'alien dans le bloc 
 
-const float	VITESSE_BALLE = 0.25f,     // La vitesse d'une balle
+const float	VITESSE_BALLE = 0.50f,     // La vitesse d'une balle
             VITESSE_HERO = 0.25f;      // La vitesse du héro
 
 const int   LARGEUR_ECRAN = 400,
             HAUTEUR_ECRAN = 600;
+
+const int   NB_ALIEN_TOTAL = LARGEUR_BLOC * HAUTEUR_BLOC;
 
 Entite creerEntite(int vie, float x, float y, float largeur, float hauteur);
 void tirerProjectile(Entite &projectile, float x, float y);
@@ -84,6 +87,10 @@ void afficherRendu(SDL_Surface *ecran, Entite &joueur, Entite &balleHero, Entite
 void verifierMortEntite(Entite &entite);
 
 void initialiserAliens(Entite alien[][LARGEUR_BLOC], SDL_Surface *spriteSheet);
+
+bool menuTitre(SDL_Surface *ecran);
+
+void menuGameOver(SDL_Surface *ecran, bool perdu);
 
 /* Programme principale
 =================================*/
@@ -123,7 +130,6 @@ int main(int argc, char *argv[])
     
 	srand(randomizer.seed);
 
-    
 	/*************** PROGRAMME *********************/
 	// Initialisation SDL
 	if(SDL_Init(SDL_INIT_VIDEO) == -1) // Si elle echoue…
@@ -169,6 +175,12 @@ int main(int argc, char *argv[])
     alienDepTimer.old = SDL_GetTicks();
     alienDepTimer.actual = SDL_GetTicks();
     
+    int nbAlienMorts = 0;
+    int msDep = 60;
+    
+    if(menuTitre(ecran) == false)
+        return EXIT_SUCCESS;
+    
 	/*************** BOUCLE PRINCIPALE *********************/
 	while(partieTerminee == false)         // Tant que la partie n'est pas terminee...
 	{
@@ -211,34 +223,6 @@ int main(int argc, char *argv[])
         {
             for(int j = 0; j < LARGEUR_BLOC; j++) 
             {
-                randomizer.maximum = 100;
-                
-                // On génère un nombre entre 1 et 100
-                int anim = random(randomizer);
-                
-                if(anim < 5)                        // 4% de chance que l'alien change sa frame d'animation
-                {
-                    animerAlien(Alien[i][j]);
-                }
-                
-                randomizer.maximum = 10000;
-                int shoot = random(randomizer);     // On génere un nombre entre 0 et 10000
-                
-                if(shoot == 20)                     // Si ce nombre égal 20 (donc 0.01% de chance) l'alien tir un projectile
-                {                   
-                    Entite balle;
-                    balle = creerEntite(1, 1000, 1000, 1, 4);
-                    balle.surface = spriteSheet;
-                    balle.subrect.x = 25;
-                    balle.subrect.y = 0;
-                    balle.velocite.y = VITESSE_BALLE;
-                    
-                    tirerProjectile(balle, Alien[i][j].position.x, Alien[i][j].position.y);
-                    
-                    balleAlien.push_back(balle);
-                    
-                }
-                
                 // Si la balle du héro atteint un alien
                 if(collisionEntiteEntite(balleHero, Alien[i][j]) && Alien[i][j].vivant && balleHero.vivant) 
                 {
@@ -254,6 +238,10 @@ int main(int argc, char *argv[])
                     
                     // Si l'alien n'a plus de vie, il est mort
                     verifierMortEntite(Alien[i][j]);
+                    
+                    if(Alien[i][j].vivant == false) {
+                        nbAlienMorts ++;
+                    }
                 }
                 
                 it_balleAlien = balleAlien.begin();
@@ -309,7 +297,7 @@ int main(int argc, char *argv[])
         }
         
         // Le déplacment des aliens dépend du temps
-        if(alienDepTimer.actual - alienDepTimer.old >= 80) 
+        if(alienDepTimer.actual - alienDepTimer.old >= msDep) 
         {
             for(int i = 0; i < HAUTEUR_BLOC; i++) 
             {
@@ -319,6 +307,40 @@ int main(int argc, char *argv[])
                     rafraichirPositionEntite(Alien[i][j]);
                     // Par défaut les aliens ne descende pas
                     Alien[i][j].velocite.y = 0;
+                    
+                    randomizer.maximum = 400;
+                    int shoot = random(randomizer);     // On génere un nombre entre 0 et 10000
+                    
+                    randomizer.minimum = 10;
+                    randomizer.maximum = 100;
+                    if(shoot == 20 && Alien[i][j].vivant)                     // Si ce nombre égal 20 (donc 0.01% de chance) l'alien tir un projectile
+                    {                   
+                        Entite balle;
+                        balle = creerEntite(1, 1000, 1000, 1, 4);
+                        balle.surface = spriteSheet;
+                        balle.subrect.x = 25;
+                        balle.subrect.y = 0;
+                        balle.velocite.y = random(randomizer) / 100.0f;
+                        
+                        tirerProjectile(balle, Alien[i][j].position.x, Alien[i][j].position.y);
+                        
+                        balleAlien.push_back(balle);
+                        
+                    }
+                    
+                    randomizer.minimum = 0;
+                    
+                    // On génère un nombre entre 1 et 100
+                    int anim = random(randomizer);
+                    
+                    if(anim < 5)                        // 4% de chance que l'alien change sa frame d'animation
+                    {
+                        animerAlien(Alien[i][j]);
+                    }
+                    
+                    
+                    if(Alien[i][j].position.y >= joueur.position.y) 
+                        joueur.vivant = false;
                 }
             }
             // On réinitialise le timer de déplacement
@@ -361,6 +383,23 @@ int main(int argc, char *argv[])
         if(joueur.vivant == false)
             partieTerminee = true;
         
+        if(((nbAlienMorts * 1.0f) / NB_ALIEN_TOTAL) * 100.0f >= 90)
+            msDep = 1;
+        else if(((nbAlienMorts * 1.0f) / NB_ALIEN_TOTAL) * 100.0f >= 80)
+            msDep = 5;
+        else if(((nbAlienMorts * 1.0f) / NB_ALIEN_TOTAL) * 100.0f >= 70)
+            msDep = 10;
+        else if(((nbAlienMorts * 1.0f) / NB_ALIEN_TOTAL) * 100.0f >= 50)
+            msDep = 25;
+        else if(((nbAlienMorts * 1.0f) / NB_ALIEN_TOTAL) * 100.0f >= 20)
+            msDep = 40;
+        else if(((nbAlienMorts * 1.0f) / NB_ALIEN_TOTAL) * 100.0f >= 5)
+            msDep = 50;
+        
+        if(nbAlienMorts == NB_ALIEN_TOTAL) {
+            partieTerminee = true;
+        }
+        
         // On affiche la frame actuelle
         afficherRendu(ecran, joueur, balleHero, Alien, balleAlien);
 		
@@ -368,6 +407,12 @@ int main(int argc, char *argv[])
 		SDL_Delay(12);
 	}
 	
+    if(joueur.vivant == false) {
+        menuGameOver(ecran, true);
+    } else if(nbAlienMorts == NB_ALIEN_TOTAL) {
+        menuGameOver(ecran, false);
+    }
+    
 	// On libere la memoire de la surface
 	SDL_FreeSurface(joueur.surface);
 	
@@ -569,9 +614,68 @@ void initialiserAliens(Entite Alien[][LARGEUR_BLOC], SDL_Surface *spriteSheet) {
                 Alien[i][j].vie = 3;
             }
             
-            Alien[i][j].velocite.x = 1;
+            Alien[i][j].velocite.x = 2;
             
             rafraichirPositionEntite(Alien[i][j]);
         }
     }
+}
+
+bool menuTitre(SDL_Surface *ecran) {
+    SDL_Event event;
+    
+    SDL_Surface *titre;
+    titre = SDL_LoadBMP("titre.bmp");
+    
+    while(true) {
+        while(SDL_PollEvent(&event)) {
+            switch(event.type) {
+                case SDL_QUIT:
+                    return false;
+                    break;
+                case SDL_KEYDOWN:
+                    return true;
+                    break;
+            };
+        }
+        
+        SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
+        SDL_BlitSurface(titre, NULL, ecran, NULL);
+        SDL_Flip(ecran);
+    }
+    
+    SDL_FreeSurface(titre);
+    
+    return true;
+}
+
+// Affiche un écran de game over qui s'adapte selon la victoire du joueur
+void menuGameOver(SDL_Surface *ecran, bool perdu) {
+    SDL_Event event;
+    
+    SDL_Surface *fond;
+    
+    if(perdu)
+        fond = SDL_LoadBMP("ecranPerdu.bmp");
+    else 
+        fond = SDL_LoadBMP("ecranVictoire.bmp");
+        
+    while(true) {
+        while(SDL_PollEvent(&event)) {
+            switch(event.type) {
+                case SDL_QUIT:
+                    return;
+                    break;
+                case SDL_KEYDOWN:
+                    return;
+                    break;
+            };
+        }
+        
+        SDL_FillRect(ecran, NULL, SDL_MapRGB(ecran->format, 0, 0, 0));
+        SDL_BlitSurface(fond, NULL, ecran, NULL);
+        SDL_Flip(ecran);
+    }
+    
+    SDL_FreeSurface(fond); 
 }
